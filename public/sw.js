@@ -1,4 +1,4 @@
-// Service Worker for WebCraft Studio
+// Service Worker for ChapterList Studio
 const CACHE_NAME = 'webcraft-studio-v1';
 const ASSETS_TO_CACHE = [
     '/',

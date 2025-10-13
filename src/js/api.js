@@ -4,8 +4,8 @@
  * IMPORTANT: Replace 'YOUR_API_KEY' with your actual keys.
  */
 
-const UNSPLASH_API_KEY = 'YOUR_UNSPLASH_API_KEY';
-const GOOGLE_FONTS_API_KEY = 'YOUR_GOOGLE_FONTS_API_KEY';
+const UNSPLASH_API_KEY = import.meta.env.VITE_UNSPLASH_API_KEY;
+const GOOGLE_FONTS_API_KEY = import.meta.env.VITE_GOOGLE_FONTS_API_KEY;
 
 /**
  * Fetches random photos from Unsplash based on a query.

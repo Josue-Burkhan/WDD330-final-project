@@ -12,12 +12,8 @@ export function renderDashboard() {
     
     app.innerHTML = `
         <header class="app-header">
-            <h1>WebCraft Studio</h1>
+            <h1>ChapterList Studio</h1>
             <div class="header-actions">
-                <div class="theme-switcher">
-                    <input type="checkbox" id="theme-toggle">
-                    <label for="theme-toggle">Toggle Theme</label>
-                </div>
                 <button id="new-project-btn" class="btn-primary">New Project</button>
             </div>
         </header>
@@ -27,10 +23,30 @@ export function renderDashboard() {
                 ${projects.length > 0 ? projects.map(createProjectCard).join('') : '<p class="empty-state">No projects yet. Create one to get started!</p>'}
             </div>
         </main>
+        <div id="new-project-modal" class="modal">
+            <div class="modal-content">
+                <h2>Create New Project</h2>
+                <form id="new-project-form">
+                    <label for="project-name-input">Project Name</label>
+                    <input type="text" id="project-name-input" required>
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-project-btn">Cancel</button>
+                        <button type="submit">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     `;
 
     // Add event listeners
-    document.getElementById('new-project-btn').addEventListener('click', handleNewProject);
+    document.getElementById('new-project-btn').addEventListener('click', () => {
+        document.getElementById('new-project-modal').style.display = 'flex';
+    });
+    document.getElementById('cancel-project-btn').addEventListener('click', () => {
+        document.getElementById('new-project-modal').style.display = 'none';
+    });
+    document.getElementById('new-project-form').addEventListener('submit', handleNewProject);
+
     document.querySelectorAll('.project-card .edit-btn').forEach(btn => {
         btn.addEventListener('click', handleEditProject);
     });
@@ -54,8 +70,10 @@ function createProjectCard(project) {
     `;
 }
 
-function handleNewProject() {
-    const projectName = prompt('Enter a name for your new project:');
+function handleNewProject(event) {
+    event.preventDefault();
+    const projectNameInput = document.getElementById('project-name-input');
+    const projectName = projectNameInput.value;
     if (projectName && projectName.trim() !== '') {
         const newProject = {
             id: `proj_${Date.now()}`,
@@ -64,7 +82,7 @@ function handleNewProject() {
             sections: []
         };
         saveProject(newProject);
-        renderEditor(newProject.id); // Go directly to editor
+        renderEditor(newProject.id);
     }
 }
 
@@ -74,7 +92,7 @@ function handleEditProject(event) {
 }
 
 function handleDeleteProject(event) {
-    event.stopPropagation(); // Prevent triggering edit
+    event.stopPropagation(); 
     const projectId = event.target.closest('.project-card').dataset.id;
     if (confirm('Are you sure you want to delete this project?')) {
         deleteProject(projectId);
@@ -95,10 +113,6 @@ export function renderEditor(projectId) {
             <button id="back-to-dash">Back to Dashboard</button>
             <span class="project-title">${project.name}</span>
             <div class="header-actions">
-                <div class="theme-switcher">
-                    <input type="checkbox" id="theme-toggle">
-                    <label for="theme-toggle">Toggle Theme</label>
-                </div>
                 <button id="export-html-btn" class="btn-secondary">Export HTML</button>
             </div>
         </header>

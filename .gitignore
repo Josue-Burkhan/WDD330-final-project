@@ -1,0 +1,5 @@
+.env
+
+# Vite
+node_modules
+dist

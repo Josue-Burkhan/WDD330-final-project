@@ -3,8 +3,8 @@
  * Manages all interactions with localStorage.
  */
 
-const PROJECTS_KEY = 'webcraft_projects';
-const THEME_KEY = 'webcraft_theme';
+const PROJECTS_KEY = 'chapterlist_projects';
+const THEME_KEY = 'chapterlist_theme';
 
 // --- Project Management ---
 

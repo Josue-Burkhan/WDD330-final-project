@@ -1,4 +1,4 @@
-/* WebCraft Studio - Main Stylesheet */
+/* ChapterList Studio - Main Stylesheet */
 
 :root {
     --font-primary: 'Poppins', sans-serif;
@@ -198,18 +198,20 @@ h1, h2, h3, h4, h5, h6 {
     gap: 1.5rem;
 }
 
-.theme-switcher {
-    display: flex;
-    align-items: center;
+.theme-switcher-fixed {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
 }
 
-.theme-switcher input[type="checkbox"] {
+.theme-switcher-fixed input[type="checkbox"] {
     height: 0;
     width: 0;
     visibility: hidden;
 }
 
-.theme-switcher label {
+.theme-switcher-fixed label {
     cursor: pointer;
     text-indent: -9999px;
     width: 50px;
@@ -220,7 +222,7 @@ h1, h2, h3, h4, h5, h6 {
     position: relative;
 }
 
-.theme-switcher label:after {
+.theme-switcher-fixed label:after {
     content: '';
     position: absolute;
     top: 2.5px;
@@ -232,16 +234,16 @@ h1, h2, h3, h4, h5, h6 {
     transition: 0.3s;
 }
 
-.theme-switcher input:checked + label {
+.theme-switcher-fixed input:checked + label {
     background: var(--accent-color);
 }
 
-.theme-switcher input:checked + label:after {
+.theme-switcher-fixed input:checked + label:after {
     left: calc(100% - 2.5px);
     transform: translateX(-100%);
 }
 
-.theme-switcher label:active:after {
+.theme-switcher-fixed label:active:after {
     width: 30px;
 }
 
@@ -426,5 +428,73 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0.8;
 }
 
+/* Modal */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
 
+.modal-content {
+    background-color: var(--surface-color);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    width: 90%;
+    max-width: 500px;
+}
 
+.modal-content h2 {
+    margin-top: 0;
+}
+
+#new-project-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#new-project-form input {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.modal-actions button {
+    padding: 0.6rem 1.2rem;
+    font-family: var(--font-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+}
+
+.modal-actions button[type="submit"] {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+}
+
+.modal-actions button[type="button"] {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}

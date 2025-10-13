@@ -5,6 +5,16 @@
 import { renderDashboard } from './ui.js';
 import { getTheme, saveTheme } from './storage.js';
 
+function createPersistentThemeToggle() {
+    const themeSwitcher = document.createElement('div');
+    themeSwitcher.className = 'theme-switcher-fixed';
+    themeSwitcher.innerHTML = `
+        <input type="checkbox" id="theme-toggle">
+        <label for="theme-toggle">Toggle Theme</label>
+    `;
+    document.body.appendChild(themeSwitcher);
+}
+
 function setupThemeToggle() {
     const themeToggle = document.getElementById('theme-toggle');
     if (!themeToggle) return;
@@ -24,15 +34,17 @@ function init() {
     // Set initial theme class on body
     document.body.classList.add(getTheme());
 
+    // Create the persistent theme toggle
+    createPersistentThemeToggle();
+
     // Render initial view
     renderDashboard();
     
-    // Set up the theme toggle after the view is rendered
+    // Set up the theme toggle
     setupThemeToggle();
 }
 
-// Re-initialize theme toggle when UI changes
-document.addEventListener('ui-rendered', setupThemeToggle);
+
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', init);

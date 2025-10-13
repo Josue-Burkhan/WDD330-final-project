@@ -1,0 +1,23 @@
+{
+  "name": "chapterlist-studio",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Josue-Burkhan/WDD330-final-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Josue-Burkhan/WDD330-final-project/issues"
+  },
+  "homepage": "https://github.com/Josue-Burkhan/WDD330-final-project#readme",
+  "devDependencies": {
+    "vite": "^7.1.9"
+  }
+}
