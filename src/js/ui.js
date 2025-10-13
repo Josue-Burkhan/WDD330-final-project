@@ -26,7 +26,7 @@ export function renderDashboard() {
     app.innerHTML = `
         <div class="app-header"><h1>ChapterList Studio</h1><button id="new-story-btn" class="btn-primary">+ New Story</button></div>
         <main class="dashboard-container">
-            <h2>My Stories</h2>
+            <h2 class="first-title">My Stories</h2>
             <div class="project-list">${stories.length > 0 ? stories.map(createStoryCard).join('') : '<p class="empty-state">No stories yet.</p>'}</div>
         </main>
         <div id="new-story-modal" class="modal" style="display: none;">

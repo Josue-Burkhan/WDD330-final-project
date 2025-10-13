@@ -45,7 +45,7 @@ export function saveStory(storyData) {
             synopsis: 'This is a brief and exciting synopsis of your new story. Click here to edit it!',
             heroImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80',
             created: storyData.created,
-            volumes: [createNewVolume()], // Create Volume 1 by default
+            volumes: [createNewVolume()],
         };
         stories.push(newStory);
     }
