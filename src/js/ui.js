@@ -226,6 +226,7 @@ function renderStyleSidebar() {
 
         ${activeVolume ? `
             <div class="style-group"><label>Text</label><div class="color-input-wrapper"><div class="color-input-swatch" style="background-color:${activeVolume.style.textColor};"></div><input type="color" data-style-prop="textColor" value="${activeVolume.style.textColor}"></div></div>
+            <div class="style-group"><label>Background</label><div class="color-input-wrapper"><div class="color-input-swatch" style="background-color:${activeVolume.style.backgroundColor};"></div><input type="color" data-style-prop="backgroundColor" value="${activeVolume.style.backgroundColor}"></div></div>
             <div class="style-group"><label>Font</label><select data-style-prop="font"><option value="serif">Serif (default)</option><option value="sans-serif">Sans-Serif (default)</option>${fontOptions}</select></div>
         ` : ''}
     `;
@@ -268,7 +269,7 @@ function renderLivePreview() {
     const accentColor = palette && palette['500'] ? palette['500'] : activeVolume.style.accentColor;
     const accentHoverColor = palette && palette['700'] ? palette['700'] : darkenColor(activeVolume.style.accentColor, 15);
 
-    document.body.style.setProperty('--surface-color', activeVolume.style.backgroundColor);
+    document.body.style.setProperty('--bg-color', activeVolume.style.backgroundColor);
     document.body.style.setProperty('--surface-color-dark', darkenColor(activeVolume.style.backgroundColor, 10));
     document.body.style.setProperty('--text-color', activeVolume.style.textColor);
     document.body.style.setProperty('--accent-color', accentColor);
