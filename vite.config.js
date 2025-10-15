@@ -5,7 +5,7 @@ export default defineConfig({
     port: 6767
   },
   build: {
-    outDir: '../dist'
+    outDir: 'dist'
   },
   root: 'src'
 })
