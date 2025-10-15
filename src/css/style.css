@@ -33,7 +33,7 @@ body.light-mode {
 }
 
 body {
-    background-color: var(--bg-color);
+    background-color: var(--surface-color);
     color: var(--text-color);
 }
 
@@ -100,7 +100,7 @@ body {
 }
 
 .project-card {
-    background-color: var(--bg-color);
+    background-color: var(--surface-color);
     color: var(--dark-text-color);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
@@ -173,7 +173,7 @@ body {
 
 /* Modal */
 .modal {
-    display: none;
+    display: flex;
     position: fixed;
     z-index: 2000;
     left: 0;
@@ -183,6 +183,21 @@ body {
     background-color: rgba(0, 0, 0, 0.6);
     justify-content: center;
     align-items: center;
+    transition: opacity 0.25s ease;
+}
+
+.modal:not(.show) {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal.show .modal-content {
+    animation: fadeInUp 0.4s ease-out forwards;
 }
 
 .modal-content {
@@ -218,6 +233,25 @@ body {
     color: var(--text-color);
     padding: 1.5rem;
     overflow-y: auto;
+}
+
+/* Custom Scrollbar for Sidebar */
+#style-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+#style-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#style-sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--accent-color);
+    border-radius: 20px;
+    border: 3px solid var(--accent-100);
+}
+
+#style-sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--accent-hover);
 }
 
 #style-sidebar h3 {
@@ -272,7 +306,6 @@ body {
     pointer-events: none;
 }
 
-/* Editor Canvas */
 #editor-canvas {
     flex-grow: 1;
     overflow-y: auto;
@@ -469,7 +502,6 @@ body.preview-mode #style-sidebar {
     display: none;
 }
 
-/* Responsive Design */
 .burger-btn {
     display: none;
     flex-direction: column;
@@ -480,7 +512,7 @@ body.preview-mode #style-sidebar {
     border: none;
     cursor: pointer;
     padding: 0;
-    z-index: 1010; /* Higher than sidebar */
+    z-index: 1010;
 }
 
 .burger-btn span {
@@ -502,7 +534,10 @@ body.preview-mode #style-sidebar {
         position: relative;
     }
 
-    .btn-primary, .btn-secondary, .edit-btn, .delete-btn {
+    .btn-primary,
+    .btn-secondary,
+    .edit-btn,
+    .delete-btn {
         padding: 5px 10px;
     }
 
@@ -541,7 +576,7 @@ body.preview-mode #style-sidebar {
         gap: 1rem;
         justify-content: space-between;
     }
-    
+
     .app-header h1 {
         font-size: 1rem;
     }
@@ -562,8 +597,20 @@ body.preview-mode #style-sidebar {
     .page-header .header-nav.nav-open {
         display: flex;
     }
-    
+
     .page-header .header-nav a {
+        margin: 1rem 0;
+    }
+
+    .header-actions {
+        margin-left: auto;
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .header-nav a {
         margin: 1rem 0;
     }
 

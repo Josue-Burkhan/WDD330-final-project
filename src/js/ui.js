@@ -53,9 +53,9 @@ export function renderDashboard() {
         <div class="app-header"><h1>ChapterList Studio</h1><button id="new-story-btn" class="btn-primary">+ New Story</button></div>
         <main class="dashboard-container">
             <h2 class="first-title">My Stories</h2>
-            <div class="project-list">${stories.length > 0 ? stories.map(createStoryCard).join('') : '<p class="empty-state">No stories yet.</p>'}</div>
+            <div class="project-list">${stories.length > 0 ? stories.map((story, index) => createStoryCard(story, index)).join('') : '<p class="empty-state">No stories yet.</p>'}</div>
         </main>
-        <div id="new-story-modal" class="modal" style="display: none;">
+        <div id="new-story-modal" class="modal">
             <div class="modal-content">
                 <h2>Create New Story</h2>
                 <form id="new-story-form">
@@ -68,16 +68,17 @@ export function renderDashboard() {
     addDashboardEventListeners();
 }
 
-function createStoryCard(story) {
-    return `<div class="project-card" data-id="${story.id}"><h3>${story.name}</h3><p>Volumes: ${story.volumes.length}</p><div class="card-actions"><button class="edit-btn">Edit</button><button class="delete-btn">Delete</button></div></div>`;
+function createStoryCard(story, index) {
+    return `<div class="project-card" data-id="${story.id}" style="animation-delay: ${index * 75}ms"><h3>${story.name}</h3><p>Volumes: ${story.volumes.length}</p><div class="card-actions"><button class="edit-btn">Edit</button><button class="delete-btn">Delete</button></div></div>`;
 }
 
 function addDashboardEventListeners() {
+    const modal = document.getElementById('new-story-modal');
     app.addEventListener('click', e => {
         if (e.target.id === 'new-story-btn') {
-            document.getElementById('new-story-modal').style.display = 'flex';
+            modal.classList.add('show');
         } else if (e.target.id === 'cancel-story-btn') {
-            document.getElementById('new-story-modal').style.display = 'none';
+            modal.classList.remove('show');
         } else if (e.target.classList.contains('edit-btn')) {
             renderEditor(e.target.closest('.project-card').dataset.id);
         } else if (e.target.classList.contains('delete-btn')) {
@@ -342,7 +343,8 @@ function renderLivePreview() {
 function handleAddVolume() {
     const modal = document.createElement('div');
     modal.className = 'modal';
-    modal.style.display = 'flex'; // Show the modal
+    // Add 'show' class to make it visible and trigger animation
+    modal.classList.add('show');
     modal.innerHTML = `
         <div class="modal-content">
             <h2>Create New Volume</h2>
@@ -368,7 +370,7 @@ function handleAddVolume() {
         story.volumes.push(createNewVolume(volumeName));
         activeVolumeIndex = story.volumes.length - 1;
         saveStory(story);
-        currentStory = story; // Update currentStory
+        currentStory = story;
         renderEditorContent();
         modal.remove();
     };
