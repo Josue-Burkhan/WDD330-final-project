@@ -74,23 +74,32 @@ function createStoryCard(story) {
 }
 
 function addDashboardEventListeners() {
-    document.getElementById('new-story-btn').addEventListener('click', () => { document.getElementById('new-story-modal').style.display = 'flex'; });
-    document.getElementById('cancel-story-btn').addEventListener('click', () => { document.getElementById('new-story-modal').style.display = 'none'; });
-    document.getElementById('new-story-form').addEventListener('submit', e => {
-        e.preventDefault();
-        const storyName = document.getElementById('story-name-input').value;
-        if (storyName.trim()) {
-            const newStory = { id: `story_${Date.now()}`, name: storyName.trim(), created: new Date().toISOString() };
-            saveStory(newStory);
-            renderEditor(newStory.id);
+    app.addEventListener('click', e => {
+        if (e.target.id === 'new-story-btn') {
+            document.getElementById('new-story-modal').style.display = 'flex';
+        } else if (e.target.id === 'cancel-story-btn') {
+            document.getElementById('new-story-modal').style.display = 'none';
+        } else if (e.target.classList.contains('edit-btn')) {
+            renderEditor(e.target.closest('.project-card').dataset.id);
+        } else if (e.target.classList.contains('delete-btn')) {
+            const storyId = e.target.closest('.project-card').dataset.id;
+            if (confirm('Delete this story?')) { 
+                deleteStory(storyId); 
+                renderDashboard(); 
+            }
         }
     });
-    document.querySelectorAll('.edit-btn').forEach(btn => { btn.addEventListener('click', e => renderEditor(e.target.closest('.project-card').dataset.id)); });
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-            const storyId = e.target.closest('.project-card').dataset.id;
-            if (confirm('Delete this story?')) { deleteStory(storyId); renderDashboard(); }
-        });
+
+    app.addEventListener('submit', e => {
+        if (e.target.id === 'new-story-form') {
+            e.preventDefault();
+            const storyName = document.getElementById('story-name-input').value;
+            if (storyName.trim()) {
+                const newStory = { id: `story_${Date.now()}`, name: storyName.trim(), created: new Date().toISOString() };
+                saveStory(newStory);
+                renderEditor(newStory.id);
+            }
+        }
     });
 }
 
@@ -101,10 +110,12 @@ export async function renderEditor(storyId) {
         currentStory = getStory(storyId);
         if (!currentStory) { renderDashboard(); return; }
         activeVolumeIndex = 0;
-        if (googleFonts.length === 0) { googleFonts = await fetchGoogleFonts(); }
+        if (googleFonts.length === 0) { 
+            googleFonts = await fetchGoogleFonts(); 
+        }
 
         app.innerHTML = `
-            <div class="app-header"><button id="back-to-dash">Dashboard</button><div class="header-actions"><button id="preview-btn">Preview</button></div></div>
+            <div class="app-header"><button id="back-to-dash" class="btn-primary">Dashboard</button><div class="header-actions"><button id="preview-btn" class="btn-primary">Preview</button></div></div>
             <div class="editor-container"><aside id="style-sidebar"></aside><main id="editor-canvas"></main></div>
         `;
 
@@ -122,9 +133,84 @@ function renderEditorContent() {
 }
 
 function addEditorEventListeners() {
-    document.getElementById('back-to-dash').addEventListener('click', renderDashboard);
-    document.getElementById('preview-btn').addEventListener('click', togglePreviewMode);
+    app.addEventListener('click', handleAppClick);
+    app.addEventListener('input', handleSidebarInput);
+    app.addEventListener('change', handleSidebarChange);
 }
+
+function handleAppClick(e) {
+    const target = e.target;
+    if (target.id === 'back-to-dash') {
+        renderDashboard();
+    } else if (target.id === 'preview-btn') {
+        togglePreviewMode();
+    } else if (target.matches('.volume-list li[data-index]')) {
+        const newIndex = parseInt(e.target.dataset.index, 10);
+        if (newIndex !== activeVolumeIndex) {
+            activeVolumeIndex = newIndex;
+            renderEditorContent();
+        }
+    } else if (target.id === 'add-volume-btn') {
+        handleAddVolume();
+    } else if (target.id === 'unsplash-search-btn') {
+        handleUnsplashSearch();
+    } else if (target.matches('#unsplash-results img')) {
+        updateStory('heroImage', target.dataset.fullUrl);
+    }
+}
+
+async function handleSidebarInput(e) {
+    const target = e.target;
+    const id = target.id;
+    const prop = target.dataset.styleProp;
+    const value = target.value;
+
+    if (id === 'story-title') {
+        updateStory('name', value);
+    } else if (id === 'story-synopsis') {
+        updateStory('synopsis', value);
+    } else if (id === 'story-hero-image-url') {
+        updateStory('heroImage', value);
+    } else if (id === 'palette-color-picker') {
+        const palette = await fetchColorPalette(value);
+        if (palette) {
+            currentStory.volumes[activeVolumeIndex].style.palette = palette;
+            currentStory.volumes[activeVolumeIndex].style.accentColor = palette['500'];
+            saveStory(currentStory);
+            renderEditorContent();
+        }
+    } else if (prop) {
+        currentStory.volumes[activeVolumeIndex].style[prop] = value;
+        if (prop === 'font') {
+            loadGoogleFont(value);
+        }
+        saveStory(currentStory);
+        renderEditorContent();
+    }
+}
+
+function handleSidebarChange(e) {
+    const target = e.target;
+    const id = target.id;
+
+    if (id === 'story-hero-image-upload') {
+        const file = e.target.files[0];
+        if (file) { 
+            const reader = new FileReader(); 
+            reader.onload = (ev) => updateStory('heroImage', ev.target.result); 
+            reader.readAsDataURL(file); 
+        }
+    }
+}
+
+async function handleUnsplashSearch() {
+    const query = document.getElementById('unsplash-query').value;
+    const resultsContainer = document.getElementById('unsplash-results');
+    resultsContainer.innerHTML = 'Loading...';
+    const images = await fetchUnsplashImages(query);
+    resultsContainer.innerHTML = images.map(img => `<img src="${img.urls.thumb}" data-full-url="${img.urls.regular}" style="width:100%;cursor:pointer;">`).join('');
+}
+
 
 function renderStyleSidebar() {
     const sidebar = document.getElementById('style-sidebar');
@@ -160,60 +246,10 @@ function renderStyleSidebar() {
         </div>
 
         ${activeVolume ? `
-            <hr>
-            <h3>Volume Styles (${activeVolume.name})</h3>
-            <div class="style-group"><label>Background</label><div class="color-input-wrapper"><div class="color-input-swatch" style="background-color:${activeVolume.style.backgroundColor};"></div><input type="color" data-style-prop="backgroundColor" value="${activeVolume.style.backgroundColor}"></div></div>
             <div class="style-group"><label>Text</label><div class="color-input-wrapper"><div class="color-input-swatch" style="background-color:${activeVolume.style.textColor};"></div><input type="color" data-style-prop="textColor" value="${activeVolume.style.textColor}"></div></div>
             <div class="style-group"><label>Font</label><select data-style-prop="font"><option value="serif">Serif (default)</option><option value="sans-serif">Sans-Serif (default)</option>${fontOptions}</select></div>
         ` : ''}
     `;
-    addSidebarEventListeners();
-}
-
-function addSidebarEventListeners() {
-    // Story
-    document.getElementById('story-title').addEventListener('input', e => updateStory('name', e.target.value));
-    document.getElementById('story-synopsis').addEventListener('input', e => updateStory('synopsis', e.target.value));
-    document.getElementById('story-hero-image-url').addEventListener('input', e => updateStory('heroImage', e.target.value));
-    document.getElementById('story-hero-image-upload').addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (file) { const reader = new FileReader(); reader.onload = (ev) => updateStory('heroImage', ev.target.result); reader.readAsDataURL(file); }
-    });
-
-    // Unsplash
-    document.getElementById('unsplash-search-btn').addEventListener('click', async () => {
-        const query = document.getElementById('unsplash-query').value;
-        const resultsContainer = document.getElementById('unsplash-results');
-        resultsContainer.innerHTML = 'Loading...';
-        const images = await fetchUnsplashImages(query);
-        resultsContainer.innerHTML = images.map(img => `<img src="${img.urls.thumb}" data-full-url="${img.urls.regular}" style="width:100%;cursor:pointer;">`).join('');
-        resultsContainer.querySelectorAll('img').forEach(img => img.addEventListener('click', e => updateStory('heroImage', e.target.dataset.fullUrl)));
-    });
-
-    // Palette
-    document.getElementById('palette-color-picker').addEventListener('input', async (e) => {
-        const value = e.target.value;
-        const palette = await fetchColorPalette(value);
-        if (palette) {
-            currentStory.volumes[activeVolumeIndex].style.palette = palette;
-            currentStory.volumes[activeVolumeIndex].style.accentColor = palette['500'];
-            saveStory(currentStory);
-            renderEditorContent();
-        }
-    });
-
-    // Volume Styles
-    document.querySelectorAll('[data-style-prop]').forEach(input => {
-        input.addEventListener('input', async (e) => {
-            const prop = e.target.dataset.styleProp;
-            const value = e.target.value;
-            currentStory.volumes[activeVolumeIndex].style[prop] = value;
-
-            if (prop === 'font') loadGoogleFont(value);
-            saveStory(currentStory);
-            renderEditorContent();
-        });
-    });
 }
 
 function updateStory(property, value) {
@@ -293,23 +329,6 @@ function renderLivePreview() {
         </footer>
       </div>
     `;
-    addLivePreviewEventListeners();
-}
-
-function addLivePreviewEventListeners() {
-    document.querySelectorAll('.volume-list li[data-index]').forEach(li => {
-        li.addEventListener('click', e => {
-            const newIndex = parseInt(e.target.dataset.index, 10);
-            if (newIndex !== activeVolumeIndex) {
-                activeVolumeIndex = newIndex;
-                renderEditorContent();
-            }
-        });
-    });
-    const addVolumeBtn = document.getElementById('add-volume-btn');
-    if (addVolumeBtn) {
-        addVolumeBtn.addEventListener('click', handleAddVolume);
-    }
 }
 
 function handleAddVolume() {

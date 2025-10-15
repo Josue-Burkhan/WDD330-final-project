@@ -11,7 +11,6 @@ const GOOGLE_FONTS_API_KEY = import.meta.env.VITE_GOOGLE_FONTS_API_KEY;
  */
 export async function fetchUnsplashImages(query = 'minimal') {
     if (!UNSPLASH_API_KEY || UNSPLASH_API_KEY === 'YOUR_UNSPLASH_API_KEY') {
-        console.warn('Unsplash API key is not set.');
         return [];
     }
     try {
@@ -31,7 +30,6 @@ export async function fetchUnsplashImages(query = 'minimal') {
  */
 export async function fetchGoogleFonts() {
     if (!GOOGLE_FONTS_API_KEY || GOOGLE_FONTS_API_KEY === 'YOUR_GOOGLE_FONTS_API_KEY') {
-        console.warn('Google Fonts API key is not set. Using a default font list.');
         return Promise.resolve([
             { family: 'Merriweather' }, { family: 'Montserrat' }, { family: 'Roboto' }, { family: 'Poppins' }, { family: 'Lato' }
         ]);

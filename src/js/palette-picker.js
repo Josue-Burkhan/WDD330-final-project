@@ -12,11 +12,8 @@ async function fetchTintsDevPalette(hex) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
-        console.log('Fetched palette from tints.dev:', data);
-        return data;
+        return await response.json();
     } catch (error) {
-        console.warn('Could not fetch from tints.dev, trying fallback API...', error.message);
         return null;
     }
 }
@@ -36,7 +33,6 @@ async function fetchTheColorApiPalette(hex) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log('Fetched palette from thecolorapi.com:', data);
 
         // Adapt the response to the format expected by the UI (similar to tints.dev)
         const palette = {};

@@ -55,7 +55,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1.5rem;
-    background-color: var(--surface-color);
+    background-color: var(--accent-100);
     border-bottom: 1px solid var(--border-color);
     box-shadow: var(--shadow);
     flex-shrink: 0;
@@ -186,7 +186,7 @@ body {
 }
 
 .modal-content {
-    background-color: var(--surface-color);
+    background-color: var(--accent-300, #f8f8f8);
     padding: 2rem;
     border-radius: var(--border-radius);
     width: 90%;
@@ -214,7 +214,7 @@ body {
 #style-sidebar {
     width: 300px;
     flex-shrink: 0;
-    background-color: var(--accent-400);
+    background-color: var(--accent-100);
     color: var(--text-color);
     padding: 1.5rem;
     overflow-y: auto;
@@ -242,7 +242,7 @@ body {
     padding: 0.5rem;
     border-radius: 4px;
     border: 1px solid #455a64;
-    background-color: var(--surface-color);
+    background-color: var(--accent-900);
     color: var(--text-color);
     box-sizing: border-box;
 }
@@ -285,7 +285,7 @@ body {
 */
 
 #page-preview-wrapper {
-    background-color: var(--surface-color-dark);
+    background-color: var(--accent-200);
 }
 
 .page-header {
@@ -293,7 +293,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: var(--surface-color-dark);
+    background-color: var(--accent-300);
     box-shadow: var(--shadow);
     border-bottom: 1px solid var(--border-color);
 }
@@ -382,12 +382,12 @@ body {
     max-width: 1400px;
     margin: 2rem auto;
     padding: 0 2rem;
-    background-color: var(--surface-color-dark);
+    background-color: var(--accent-200);
 }
 
 .volumes-column,
 .chapters-column {
-    background-color: var(--surface-color);
+    background-color: var(--accent-500);
     padding: 1.5rem;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
@@ -416,7 +416,7 @@ body {
 }
 
 .volume-list li:hover {
-    background-color: var(--surface-color-dark);
+    background-color: var(--accent-300);
 }
 
 .volume-list li.active {
@@ -435,7 +435,7 @@ body {
 .rating-section {
     text-align: center;
     padding: 3rem 2rem;
-    background-color: var(--surface-color);
+    background-color: var(--accent-200);
     margin-top: 2rem;
 }
 
