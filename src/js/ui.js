@@ -114,7 +114,18 @@ export async function renderEditor(storyId) {
         }
 
         app.innerHTML = `
-            <div class="app-header"><button id="back-to-dash" class="btn-primary">Dashboard</button><div class="header-actions"><button id="preview-btn" class="btn-primary">Preview</button></div></div>
+            <div class="app-header">
+                <button id="toggle-sidebar-btn" class="burger-btn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <h1>ChapterList Studio</h1>
+                <div class="header-actions">
+                    <button id="back-to-dash" class="btn-primary">Dashboard</button>
+                    <button id="preview-btn" class="btn-primary">Preview</button>
+                </div>
+            </div>
             <div class="editor-container"><aside id="style-sidebar"></aside><main id="editor-canvas"></main></div>
         `;
 
@@ -152,6 +163,10 @@ function handleAppClick(e) {
         }
     } else if (target.id === 'add-volume-btn') {
         handleAddVolume();
+    } else if (target.id === 'toggle-sidebar-btn' || target.closest('#toggle-sidebar-btn')) {
+        document.getElementById('style-sidebar').classList.toggle('sidebar-open');
+    } else if (target.id === 'toggle-nav-btn' || target.closest('#toggle-nav-btn')) {
+        document.querySelector('.header-nav').classList.toggle('nav-open');
     }
 }
 
