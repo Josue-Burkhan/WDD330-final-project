@@ -17,7 +17,8 @@ export function createNewVolume(name = 'Volume 1') {
             backgroundColor: '#f7f7f7', // Off-white
             textColor: '#333333',     // Dark gray
             accentColor: '#007acc',     // A nice blue
-            font: 'serif'
+            font: 'serif',
+            palette: {}
         },
         chapters
     };

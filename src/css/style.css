@@ -214,7 +214,7 @@ body {
 #style-sidebar {
     width: 300px;
     flex-shrink: 0;
-    background-color: var(--surface-color);
+    background-color: var(--accent-400);
     color: var(--text-color);
     padding: 1.5rem;
     overflow-y: auto;
@@ -285,7 +285,7 @@ body {
 */
 
 #page-preview-wrapper {
-    background-color: var(--surface-color);
+    background-color: var(--surface-color-dark);
 }
 
 .page-header {
@@ -293,7 +293,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: var(--surface-color);
+    background-color: var(--surface-color-dark);
     box-shadow: var(--shadow);
     border-bottom: 1px solid var(--border-color);
 }
@@ -382,7 +382,7 @@ body {
     max-width: 1400px;
     margin: 2rem auto;
     padding: 0 2rem;
-    background-color: var(--surface-color);
+    background-color: var(--surface-color-dark);
 }
 
 .volumes-column,
@@ -416,7 +416,7 @@ body {
 }
 
 .volume-list li:hover {
-    background-color: var(--bg-color);
+    background-color: var(--surface-color-dark);
 }
 
 .volume-list li.active {

@@ -1,5 +1,7 @@
 import { getStories, saveStory, deleteStory, getStory, createNewVolume } from './storage.js';
 import { fetchUnsplashImages, fetchGoogleFonts } from './api.js';
+import { darkenColor } from './utils.js';
+import { fetchColorPalette } from './palette-picker.js';
 
 const app = document.getElementById('app');
 let currentStory = null;
@@ -19,7 +21,32 @@ function loadGoogleFont(fontFamily) {
     document.head.appendChild(link);
 }
 
-// --- DASHBOARD --- //
+function updateColorPalette(palette) {
+    const styleId = 'color-palette-style';
+    let styleElement = document.getElementById(styleId);
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = styleId;
+        document.head.appendChild(styleElement);
+    }
+
+    let cssVariables = `:root {
+`;
+    if (palette) {
+        for (const shade in palette) {
+            if (Object.hasOwnProperty.call(palette, shade)) {
+                cssVariables += `    --accent-${shade}: ${palette[shade]};
+`;
+            }
+        }
+    }
+    cssVariables += `}
+`;
+
+    styleElement.innerHTML = cssVariables;
+}
+
+// --- DASHBOARD ---
 
 export function renderDashboard() {
     const stories = getStories();
@@ -67,7 +94,7 @@ function addDashboardEventListeners() {
     });
 }
 
-// --- EDITOR --- //
+// --- EDITOR ---
 
 export async function renderEditor(storyId) {
     try {
@@ -122,12 +149,21 @@ function renderStyleSidebar() {
             <div id="unsplash-results" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:1rem;max-height:200px;overflow-y:auto;"></div>
         </div>
 
+        <hr>
+        <h3>Color Palette</h3>
+        <div class="style-group">
+            <label>Base Color</label>
+            <div class="color-input-wrapper">
+                <div class="color-input-swatch" style="background-color:${activeVolume.style.accentColor};"></div>
+                <input type="color" id="palette-color-picker" value="${activeVolume.style.accentColor}">
+            </div>
+        </div>
+
         ${activeVolume ? `
             <hr>
             <h3>Volume Styles (${activeVolume.name})</h3>
             <div class="style-group"><label>Background</label><div class="color-input-wrapper"><div class="color-input-swatch" style="background-color:${activeVolume.style.backgroundColor};"></div><input type="color" data-style-prop="backgroundColor" value="${activeVolume.style.backgroundColor}"></div></div>
             <div class="style-group"><label>Text</label><div class="color-input-wrapper"><div class="color-input-swatch" style="background-color:${activeVolume.style.textColor};"></div><input type="color" data-style-prop="textColor" value="${activeVolume.style.textColor}"></div></div>
-            <div class="style-group"><label>Accent</label><div class="color-input-wrapper"><div class="color-input-swatch" style="background-color:${activeVolume.style.accentColor};"></div><input type="color" data-style-prop="accentColor" value="${activeVolume.style.accentColor}"></div></div>
             <div class="style-group"><label>Font</label><select data-style-prop="font"><option value="serif">Serif (default)</option><option value="sans-serif">Sans-Serif (default)</option>${fontOptions}</select></div>
         ` : ''}
     `;
@@ -154,12 +190,25 @@ function addSidebarEventListeners() {
         resultsContainer.querySelectorAll('img').forEach(img => img.addEventListener('click', e => updateStory('heroImage', e.target.dataset.fullUrl)));
     });
 
+    // Palette
+    document.getElementById('palette-color-picker').addEventListener('input', async (e) => {
+        const value = e.target.value;
+        const palette = await fetchColorPalette(value);
+        if (palette) {
+            currentStory.volumes[activeVolumeIndex].style.palette = palette;
+            currentStory.volumes[activeVolumeIndex].style.accentColor = palette['500'];
+            saveStory(currentStory);
+            renderEditorContent();
+        }
+    });
+
     // Volume Styles
     document.querySelectorAll('[data-style-prop]').forEach(input => {
-        input.addEventListener('input', e => {
+        input.addEventListener('input', async (e) => {
             const prop = e.target.dataset.styleProp;
             const value = e.target.value;
             currentStory.volumes[activeVolumeIndex].style[prop] = value;
+
             if (prop === 'font') loadGoogleFont(value);
             saveStory(currentStory);
             renderEditorContent();
@@ -184,11 +233,22 @@ function renderLivePreview() {
     }
 
     loadGoogleFont(activeVolume.style.font);
-    const styleOverrides = `--surface-color:${activeVolume.style.backgroundColor};--text-color:${activeVolume.style.textColor};--accent-color:${activeVolume.style.accentColor};--font-body:'${activeVolume.style.font}', sans-serif;`;
 
-    document.body.style.cssText = styleOverrides;
+    const palette = activeVolume.style.palette;
+    updateColorPalette(palette);
+
+    const accentColor = palette && palette['500'] ? palette['500'] : activeVolume.style.accentColor;
+    const accentHoverColor = palette && palette['700'] ? palette['700'] : darkenColor(activeVolume.style.accentColor, 15);
+
+    document.body.style.setProperty('--surface-color', activeVolume.style.backgroundColor);
+    document.body.style.setProperty('--surface-color-dark', darkenColor(activeVolume.style.backgroundColor, 10));
+    document.body.style.setProperty('--text-color', activeVolume.style.textColor);
+    document.body.style.setProperty('--accent-color', accentColor);
+    document.body.style.setProperty('--accent-hover', accentHoverColor);
+    document.body.style.setProperty('--font-body', `'${activeVolume.style.font}', sans-serif`);
+
     canvas.innerHTML = `
-      <div id="page-preview-wrapper" style="${styleOverrides}">
+      <div id="page-preview-wrapper">
         <header class="page-header">
             <div class="header-logo">Wild Fantasy</div>
             <nav class="header-nav">
@@ -239,11 +299,17 @@ function renderLivePreview() {
 function addLivePreviewEventListeners() {
     document.querySelectorAll('.volume-list li[data-index]').forEach(li => {
         li.addEventListener('click', e => {
-            const newIndex = parseInt(e.target.dataset.index);
-            if (newIndex !== activeVolumeIndex) { activeVolumeIndex = newIndex; renderEditorContent(); }
+            const newIndex = parseInt(e.target.dataset.index, 10);
+            if (newIndex !== activeVolumeIndex) {
+                activeVolumeIndex = newIndex;
+                renderEditorContent();
+            }
         });
     });
-    document.getElementById('add-volume-btn').addEventListener('click', handleAddVolume);
+    const addVolumeBtn = document.getElementById('add-volume-btn');
+    if (addVolumeBtn) {
+        addVolumeBtn.addEventListener('click', handleAddVolume);
+    }
 }
 
 function handleAddVolume() {
