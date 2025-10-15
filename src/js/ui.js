@@ -1,6 +1,6 @@
 import { getStories, saveStory, deleteStory, getStory, createNewVolume } from './storage.js';
-import { fetchUnsplashImages, fetchGoogleFonts } from './api.js';
-import { darkenColor } from './utils.js';
+import { fetchGoogleFonts } from './api.js';
+import { darkenColor, debounce } from './utils.js';
 import { fetchColorPalette } from './palette-picker.js';
 
 const app = document.getElementById('app');
@@ -12,7 +12,7 @@ let googleFonts = [];
 function loadGoogleFont(fontFamily) {
     if (!fontFamily || fontFamily === 'serif' || fontFamily === 'sans-serif') return;
     const fontId = `font-link-${fontFamily.replace(/\s+/g, '-')}`;
-    if (document.getElementById(fontId)) return; // Already loaded
+    if (document.getElementById(fontId)) return;
 
     const link = document.createElement('link');
     link.id = fontId;
@@ -47,7 +47,6 @@ function updateColorPalette(palette) {
 }
 
 // --- DASHBOARD ---
-
 export function renderDashboard() {
     const stories = getStories();
     app.innerHTML = `
@@ -133,8 +132,9 @@ function renderEditorContent() {
 }
 
 function addEditorEventListeners() {
+    const debouncedInputHandler = debounce(handleSidebarInput, 500);
     app.addEventListener('click', handleAppClick);
-    app.addEventListener('input', handleSidebarInput);
+    app.addEventListener('input', debouncedInputHandler);
     app.addEventListener('change', handleSidebarChange);
 }
 
@@ -152,10 +152,6 @@ function handleAppClick(e) {
         }
     } else if (target.id === 'add-volume-btn') {
         handleAddVolume();
-    } else if (target.id === 'unsplash-search-btn') {
-        handleUnsplashSearch();
-    } else if (target.matches('#unsplash-results img')) {
-        updateStory('heroImage', target.dataset.fullUrl);
     }
 }
 
@@ -166,49 +162,38 @@ async function handleSidebarInput(e) {
     const value = target.value;
 
     if (id === 'story-title') {
-        updateStory('name', value);
+        updateStoryDetails('name', value);
     } else if (id === 'story-synopsis') {
-        updateStory('synopsis', value);
+        updateStoryDetails('synopsis', value);
     } else if (id === 'story-hero-image-url') {
-        updateStory('heroImage', value);
-    } else if (id === 'palette-color-picker') {
-        const palette = await fetchColorPalette(value);
-        if (palette) {
-            currentStory.volumes[activeVolumeIndex].style.palette = palette;
-            currentStory.volumes[activeVolumeIndex].style.accentColor = palette['500'];
-            saveStory(currentStory);
-            renderEditorContent();
-        }
+        updateVolumeStyle('heroImage', value);
     } else if (prop) {
-        currentStory.volumes[activeVolumeIndex].style[prop] = value;
+        updateVolumeStyle(prop, value);
         if (prop === 'font') {
             loadGoogleFont(value);
         }
-        saveStory(currentStory);
-        renderEditorContent();
     }
 }
 
-function handleSidebarChange(e) {
+async function handleSidebarChange(e) {
     const target = e.target;
     const id = target.id;
+    const value = target.value;
 
     if (id === 'story-hero-image-upload') {
         const file = e.target.files[0];
         if (file) { 
             const reader = new FileReader(); 
-            reader.onload = (ev) => updateStory('heroImage', ev.target.result); 
+            reader.onload = (ev) => updateVolumeStyle('heroImage', ev.target.result);
             reader.readAsDataURL(file); 
         }
+    } else if (id === 'palette-color-picker') {
+        const palette = await fetchColorPalette(value);
+        if (palette) {
+            updateVolumeStyle('palette', palette);
+            updateVolumeStyle('accentColor', palette['500']);
+        }
     }
-}
-
-async function handleUnsplashSearch() {
-    const query = document.getElementById('unsplash-query').value;
-    const resultsContainer = document.getElementById('unsplash-results');
-    resultsContainer.innerHTML = 'Loading...';
-    const images = await fetchUnsplashImages(query);
-    resultsContainer.innerHTML = images.map(img => `<img src="${img.urls.thumb}" data-full-url="${img.urls.regular}" style="width:100%;cursor:pointer;">`).join('');
 }
 
 
@@ -225,17 +210,11 @@ function renderStyleSidebar() {
         
         <h3>Hero Image</h3>
         <div class="style-group">
-            <label>Image URL</label><input type="text" id="story-hero-image-url" value="${currentStory.heroImage}">
+            <label>Image URL</label><input type="text" id="story-hero-image-url" value="${activeVolume.style.heroImage}">
             <label for="story-hero-image-upload" class="btn-secondary" style="display:block;text-align:center;margin:0.5rem 0;">Upload</label>
             <input type="file" id="story-hero-image-upload" accept="image/*" style="display:none;">
         </div>
-        <div class="style-group">
-            <label>Search Unsplash</label>
-            <div style="display:flex;gap:0.5rem;"><input type="text" id="unsplash-query"><button id="unsplash-search-btn" class="btn-primary">Go</button></div>
-            <div id="unsplash-results" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:1rem;max-height:200px;overflow-y:auto;"></div>
-        </div>
 
-        <hr>
         <h3>Color Palette</h3>
         <div class="style-group">
             <label>Base Color</label>
@@ -252,10 +231,23 @@ function renderStyleSidebar() {
     `;
 }
 
-function updateStory(property, value) {
+function updateStoryDetails(property, value) {
     currentStory[property] = value;
     saveStory(currentStory);
     renderLivePreview();
+}
+
+function updateVolumeStyle(property, value) {
+    if (currentStory.isGlobalEdit) {
+        currentStory.volumes.forEach(volume => {
+            volume.style[property] = value;
+        });
+        currentStory.isGlobalEdit = false;
+    } else {
+        currentStory.volumes[activeVolumeIndex].style[property] = value;
+    }
+    saveStory(currentStory);
+    renderEditorContent();
 }
 
 function renderLivePreview() {
@@ -286,16 +278,16 @@ function renderLivePreview() {
     canvas.innerHTML = `
       <div id="page-preview-wrapper">
         <header class="page-header">
-            <div class="header-logo">Wild Fantasy</div>
+            <div class="header-logo">ChapterList Studio</div>
             <nav class="header-nav">
-                <a href="#">Novels</a><a href="#">Donates</a><a href="#">Wiki</a><a href="#">W.F. Writers</a>
+                <a href="#">Home</a><a href="#">Novels</a><a href="#">Wiki</a><a href="#">W.F. Writers</a>
             </nav>
             <div class="header-actions">
                 <button class="btn">Login</button>
             </div>
         </header>
 
-        <section class="hero-section" style="background-image: url('${currentStory.heroImage}');">
+        <section class="hero-section" style="background-image: url('${activeVolume.style.heroImage}');">
             <div class="hero-content">
                 <h1>${currentStory.name}</h1>
                 <p>${currentStory.synopsis}</p>
@@ -332,14 +324,40 @@ function renderLivePreview() {
 }
 
 function handleAddVolume() {
-    const volumeName = prompt('New volume name:', `Volume ${currentStory.volumes.length + 1}`);
-    if (volumeName) {
-        currentStory.volumes.push(createNewVolume(volumeName));
-        activeVolumeIndex = currentStory.volumes.length - 1;
-        saveStory(currentStory);
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex'; // Show the modal
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2>Create New Volume</h2>
+            <form id="new-volume-form">
+                <input type="text" id="volume-name-input" placeholder="Enter volume name..." required value="Volume ${currentStory.volumes.length + 1}">
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancel-volume-btn">Cancel</button>
+                    <button type="submit" class="btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('cancel-volume-btn').onclick = () => modal.remove();
+
+    document.getElementById('new-volume-form').onsubmit = e => {
+        e.preventDefault();
+        const volumeName = document.getElementById('volume-name-input').value.trim();
+        if (!volumeName) return;
+        
+        const story = getStory(currentStory.id);
+        story.volumes.push(createNewVolume(volumeName));
+        activeVolumeIndex = story.volumes.length - 1;
+        saveStory(story);
+        currentStory = story; // Update currentStory
         renderEditorContent();
-    }
+        modal.remove();
+    };
 }
+
 
 function togglePreviewMode() {
     const isPreview = document.body.classList.toggle('preview-mode');

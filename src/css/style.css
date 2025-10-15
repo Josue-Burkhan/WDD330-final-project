@@ -148,7 +148,7 @@ body {
 
 .btn-primary {
     background-color: var(--accent-color);
-    color: white;
+    color: var(--text-color);
 }
 
 .btn-primary:hover {
@@ -156,7 +156,7 @@ body {
 }
 
 .btn-secondary {
-    background-color: var(--surface-color);
+    background-color: var(--accent-100);
     color: var(--text-color);
     border-color: var(--border-color);
 }
